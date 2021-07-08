@@ -3,6 +3,7 @@
  *  Prints things on screen by writting to memory I/O buffer.
  */
 
+use core::fmt;
 use volatile::Volatile;
 
 #[allow(dead_code)]  // disable warnings for unused variants
@@ -125,14 +126,27 @@ impl Writer {
     fn new_line(&mut self) {/* TODO */}
 }
 
+impl fmt::Write for Writer {
+    /* Implements Write trait to Writer to enable use of `write!` macro. */
+
+    fn write_str(&mut self, s: &str) -> fmt::Result {
+        /* Required trait method.
+            Just wraps `Writer::write_string` call and returns success. */
+        self.write_string(s);
+        Ok(())
+    }
+}
+
 pub fn print_something() {
     let mut writer = Writer {
         column_position: 0,
-        color_code: ColorCode::new(Color::Black, Color::LightGray, true),
+        color_code: ColorCode::new(Color::Black, Color::Yellow, false),
         buffer: 0xb8000 as *mut Buffer,
     };
 
     writer.write_byte(b'H');
-    writer.write_string("ello ");
-    writer.write_string("Wörld!");
+    writer.write_string("ello! ");
+    
+    use core::fmt::Write;
+    write!(writer, "The numbers are {} and {}", 42, 1.0/3.0).unwrap();
 }
