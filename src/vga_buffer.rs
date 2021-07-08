@@ -1,8 +1,15 @@
+/**
+ *  VGA text mode module.
+ *  Prints things on screen by writting to memory I/O buffer.
+ */
+
+use volatile::Volatile;
+
 #[allow(dead_code)]  // disable warnings for unused variants
 #[repr(u8)]          // store each variant as `u8`
 pub enum Color {
     /* Available colors for VGA text mode
-        (8 to 15 are lighter variants exclusive to foreground). */
+        (8 to 15 are lighter variants sometimes exclusive to foreground). */
     Black = 0,
     Blue = 1,
     Green = 2,
@@ -41,7 +48,8 @@ impl ColorCode {
     }
 }
 
-#[repr(C)]  // guarantee correct field ordering, in a C struct-like fashion
+#[repr(C)]              // guarantee correct field ordering
+#[derive(Clone, Copy)]  // Copy is needed for the Volatile type
 struct ScreenChar {
     /* Two-byte (sequential) structure
         representing a char in VGA text mode. */
@@ -57,8 +65,8 @@ const BUFFER_WIDTH: usize = 80;
 struct Buffer {
     /* Matrix buffer that must point to
         VGA text mode's memory I/O location. */
-    chars: [[ScreenChar; BUFFER_WIDTH];
-            BUFFER_HEIGHT],  // the underlying byte matrix
+    chars: [[Volatile<ScreenChar>;
+            BUFFER_WIDTH]; BUFFER_HEIGHT],  // the underlying byte matrix
 }
 
 pub struct Writer {
@@ -94,7 +102,8 @@ impl Writer {
                 };
                 unsafe {
                     // Write (two-byte) char to memory I/O buffer
-                    (*self.buffer).chars[row][col] = screen_char;
+                    // (`write` must be used as it is of the Volatile type)
+                    (*self.buffer).chars[row][col].write(screen_char);
                 }
                 // Increment column index
                 self.column_position += 1;
@@ -119,7 +128,7 @@ impl Writer {
 pub fn print_something() {
     let mut writer = Writer {
         column_position: 0,
-        color_code: ColorCode::new(Color::Black, Color::White, false),
+        color_code: ColorCode::new(Color::Black, Color::LightGray, true),
         buffer: 0xb8000 as *mut Buffer,
     };
 
