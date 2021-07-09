@@ -3,6 +3,8 @@
  *  Uses port-mapping I/O to `isa-debug-exit`.
  */
 
+use x86_64::instructions::port::Port;
+
 #[repr(u32)]
 pub enum ExitCode {
     /* Four-byte custom QEMU exit codes. */
@@ -13,7 +15,6 @@ pub enum ExitCode {
 pub fn exit(exit_code: ExitCode) {
     /* Write exit code to `isa-debug-exit` port,
         thereafter shutting down QEMU. */
-    use x86_64::instructions::port::Port;
     const IOBASE: u16 = 0xf4;
     let mut port = Port::new(IOBASE);
     unsafe {

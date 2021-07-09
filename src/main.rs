@@ -1,17 +1,18 @@
-/**
- *  Main moon_os project module.
- */
-
 #![no_std]   // don't link Rust's stdlib
 #![no_main]  // disable all Rust-level entry points
 #![feature(custom_test_frameworks)]           // replaces std test framework
 #![test_runner(crate::test::runner)]          // defines test runner function
 #![reexport_test_harness_main = "test_main"]  // replaces entry fn in testing
 
+/**
+ *  Main moon_os project module.
+ */
+
 use core::panic::PanicInfo;
 
 mod vga_buffer;
 mod qemu;
+mod serial;
 mod test;
 
 #[panic_handler]  // this function is called on panic

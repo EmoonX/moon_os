@@ -17,7 +17,7 @@ macro_rules! print {
 
 #[macro_export]
 macro_rules! println {
-    /* Format arguments and print with a following newline to VGA buffer.
+    /* Format arguments and print, appending a newline, to VGA buffer.
         If no args are given, just print a newline. */
     () => ($crate::print!("\n"));
     ($($arg:tt)*) => ($crate::print!("{}\n", format_args!($($arg)*)));
@@ -195,7 +195,7 @@ impl fmt::Write for Writer {
 
 #[doc(hidden)]  // Hide function from the docs, regardless of being public
 pub fn _print(args: fmt::Arguments) {
-    /* Lock writer and write formated arguments to VGA buffer. */
+    /* Lock writer and write formatted arguments to VGA buffer. */
     use core::fmt::Write;
     WRITER.lock().write_fmt(args).unwrap();
 }
