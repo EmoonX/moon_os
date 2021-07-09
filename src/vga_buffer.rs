@@ -23,6 +23,17 @@ macro_rules! println {
     ($($arg:tt)*) => ($crate::print!("{}\n", format_args!($($arg)*)));
 }
 
+lazy_static! {  // delegates initialization to runtime and thus avoid errors
+    // Global writer to be used as an interface.
+    // Spinlock (non-threading) Mutex enables synchronized safe mutability.
+    static ref WRITER: Mutex<Writer> = Mutex::new(Writer {
+        top_row_position: BUFFER_HEIGHT - 1,
+        column_position: 0,
+        color_code: ColorCode::new(Color::Yellow, Color::Black, false),
+        buffer: unsafe { &mut *(0xb8000 as *mut Buffer) },
+    });
+}
+
 /*---------------------------------------------------------------------------*/
 
 #[allow(dead_code)]  // disable warnings for unused variants
@@ -180,17 +191,6 @@ impl fmt::Write for Writer {
         self.write_string(s);
         Ok(())
     }
-}
-
-lazy_static! {  // delegates initialization to runtime and thus avoid errors
-    // Global writer to be used as an interface.
-    // Spinlock (non-threading) Mutex enables synchronized safe mutability.
-    static ref WRITER: Mutex<Writer> = Mutex::new(Writer {
-        top_row_position: BUFFER_HEIGHT - 1,
-        column_position: 0,
-        color_code: ColorCode::new(Color::Yellow, Color::Black, false),
-        buffer: unsafe { &mut *(0xb8000 as *mut Buffer) },
-    });
 }
 
 #[doc(hidden)]  // Hide function from the docs, regardless of being public
