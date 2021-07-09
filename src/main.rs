@@ -8,19 +8,11 @@
  *  Main moon_os project module.
  */
 
-use core::panic::PanicInfo;
-
 mod vga_buffer;
 mod qemu;
 mod serial;
+mod panic;
 mod test;
-
-#[panic_handler]  // this function is called on panic
-fn panic(info: &PanicInfo) -> ! {
-    /* Just print panic message. */
-    println!("{}", info);
-    loop {}
-}
 
 #[no_mangle]  // don't mangle function's name
 pub extern "C" fn _start() -> ! {

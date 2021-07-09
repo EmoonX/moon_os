@@ -20,6 +20,6 @@ pub fn runner(tests: &[&dyn Fn()]) {
 fn trivial_assertion() {
     /* Simply trivial assertion that is always true. */
     serial_print!("Trivial assertion... ");
-    assert_eq!(1, 1);
+    assert_eq!(2 + 2, 5);
     serial_println!("[ok]");
 }
