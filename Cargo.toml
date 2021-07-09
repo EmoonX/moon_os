@@ -8,7 +8,12 @@ edition = "2018"
 bootloader = "0.9.8"  # assists creation of bootable image
 volatile = "0.2.6"    # volatile variables avoid compiler optimizing away data
 spin = "0.5.2"        # spinlock mutex for synchronized safe internal mutability
+x86_64 = "0.14.2"     # enables port-mapped I/O abstractions
 
 [dependencies.lazy_static]  # delegates initialization of static variables
 version = "1.0"
 features = ["spin_no_std"]
+
+[package.metadata.bootimage]  # allows shutdown of QEMU in testing
+test-args = ["-device", "isa-debug-exit,iobase=0xf4,iosize=0x04"]
+test-success-exit-code = 33  # maps qemu::ExitCode::Success to 0 (0x10 << 1) | 1
