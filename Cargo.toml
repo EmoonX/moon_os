@@ -6,4 +6,9 @@ edition = "2018"
 
 [dependencies]
 bootloader = "0.9.8"  # assists creation of bootable image
-volatile = "0.2.6"    # allow definition of volatible variables to avoid compiler optimizing away data
+volatile = "0.2.6"    # volatile variables avoid compiler optimizing away data
+spin = "0.5.2"        # spinlock mutex for synchronized safe internal mutability
+
+[dependencies.lazy_static]  # delegates initialization of static variables
+version = "1.0"
+features = ["spin_no_std"]

@@ -14,6 +14,7 @@ fn panic(_info: &PanicInfo) -> ! {
 pub extern "C" fn _start() -> ! {
     /* Entry point; linker looks for `_start` by default. */
     
-    vga_buffer::print_something();
+    println!("Hello world!");
+    println!("Hello world {} {} {} {}", 1, 2, 3, '!');
     loop {}
 }

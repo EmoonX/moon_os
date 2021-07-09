@@ -1,14 +1,33 @@
 /**
  *  VGA text mode module.
- *  Prints things on screen by writting to memory I/O buffer.
+ *  Prints characters on screen by writting to memory I/O buffer.
  */
 
 use core::fmt;
+use core::cmp::max;
+use lazy_static::lazy_static;
+use spin::Mutex;
 use volatile::Volatile;
+
+#[macro_export]  // makes macro available to whole crate and place it on root
+macro_rules! print {
+    /* Format arguments and print to VGA buffer. */
+    ($($arg:tt)*) => ($crate::vga_buffer::_print(format_args!($($arg)*)));
+}
+
+#[macro_export]
+macro_rules! println {
+    /* Format arguments and print with a following newline to VGA buffer.
+        If no args are given, just print a newline. */
+    () => ($crate::print!("\n"));
+    ($($arg:tt)*) => ($crate::print!("{}\n", format_args!($($arg)*)));
+}
+
+/*---------------------------------------------------------------------------*/
 
 #[allow(dead_code)]  // disable warnings for unused variants
 #[repr(u8)]          // store each variant as `u8`
-pub enum Color {
+enum Color {
     /* Available colors for VGA text mode
         (8 to 15 are lighter variants sometimes exclusive to foreground). */
     Black = 0,
@@ -37,7 +56,7 @@ impl ColorCode {
     /* VGA text mode color code byte consisting of 3 parts:
         0 to 3 -> foreground; 4 to 6 -> background; 7 -> blink bit. */
 
-    fn new(fg: Color, bg: Color, blink: bool) -> ColorCode {
+    const fn new(fg: Color, bg: Color, blink: bool) -> ColorCode {
         /* Create a new ColorCode by setting the respective bits in byte.
             If a bg value >= 8 is given, ignore blink bit instead. */
         let _bg = bg as u8;
@@ -73,9 +92,10 @@ struct Buffer {
 pub struct Writer {
     /* Writer class; write (colored) bytes
         and strings to VGA text buffer. */
-    column_position: usize,  // horizontal index on buffer
-    color_code: ColorCode,   // color code of the following bytes
-    buffer: *mut Buffer,     // pointer to text buffer
+    top_row_position: usize,      // vertical index of topmost row
+    column_position: usize,       // horizontal index on buffer
+    color_code: ColorCode,        // color code of the following bytes
+    buffer: &'static mut Buffer,  // pointer to memory text buffer
 }
 
 impl Writer {
@@ -101,11 +121,10 @@ impl Writer {
                     ascii_character: byte,
                     color_code,
                 };
-                unsafe {
-                    // Write (two-byte) char to memory I/O buffer
-                    // (`write` must be used as it is of the Volatile type)
-                    (*self.buffer).chars[row][col].write(screen_char);
-                }
+                // Write (two-byte) char to memory I/O buffer
+                // (`write` must be used as it is of the Volatile type)
+                self.buffer.chars[row][col].write(screen_char);
+
                 // Increment column index
                 self.column_position += 1;
             }
@@ -123,7 +142,33 @@ impl Writer {
             }
         }
     }
-    fn new_line(&mut self) {/* TODO */}
+    fn new_line(&mut self) {
+        /* Iterate buffer matrix and move each row content
+            to the row immediately above (row 0 is just deleted instead). 
+            Process results then in a new blank line added at the bottom. */
+
+        // Blank/null char
+        const NULL_CHAR: ScreenChar = ScreenChar {
+            ascii_character: 0,
+            color_code: ColorCode(0),
+        };
+        // Start from topmost _written_ row (to avoid copying blank content)
+        for row in self.top_row_position..BUFFER_HEIGHT {
+            for col in 0..BUFFER_WIDTH {
+                // Read Volatile ScreenChar from current position
+                let screen_char = self.buffer.chars[row][col].read();
+                if row > 0 {  // ignore row 0
+                    // Write char to adjacent spot in previous row
+                    self.buffer.chars[row - 1][col].write(screen_char);
+                }
+                // Delete char from current row
+                self.buffer.chars[row][col].write(NULL_CHAR);
+            }
+        }
+        // Update topmost row index and do a "carriage return" back to col 0
+        self.top_row_position = max(0, self.top_row_position - 1);
+        self.column_position = 0;
+    }
 }
 
 impl fmt::Write for Writer {
@@ -137,16 +182,20 @@ impl fmt::Write for Writer {
     }
 }
 
-pub fn print_something() {
-    let mut writer = Writer {
+lazy_static! {  // delegates initialization to runtime and thus avoid errors
+    // Global writer to be used as an interface.
+    // Spinlock (non-threading) Mutex enables synchronized safe mutability.
+    static ref WRITER: Mutex<Writer> = Mutex::new(Writer {
+        top_row_position: BUFFER_HEIGHT - 1,
         column_position: 0,
         color_code: ColorCode::new(Color::Black, Color::Yellow, false),
-        buffer: 0xb8000 as *mut Buffer,
-    };
+        buffer: unsafe { &mut *(0xb8000 as *mut Buffer) },
+    });
+}
 
-    writer.write_byte(b'H');
-    writer.write_string("ello! ");
-    
+#[doc(hidden)]  // Hide function from the docs, regardless of being public
+pub fn _print(args: fmt::Arguments) {
+    /* Lock writer and write formated arguments to VGA buffer. */
     use core::fmt::Write;
-    write!(writer, "The numbers are {} and {}", 42, 1.0/3.0).unwrap();
+    WRITER.lock().write_fmt(args).unwrap();
 }
