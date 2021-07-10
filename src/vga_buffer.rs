@@ -4,7 +4,6 @@
  */
 
 use core::fmt;
-use core::cmp::max;
 use lazy_static::lazy_static;
 use spin::Mutex;
 use volatile::Volatile;
@@ -177,7 +176,9 @@ impl Writer {
             }
         }
         // Update topmost row index and do a "carriage return" back to col 0
-        self.top_row_position = max(0, self.top_row_position - 1);
+        if self.top_row_position > 0 {
+            self.top_row_position -= 1;
+        }
         self.column_position = 0;
     }
 }
@@ -198,4 +199,35 @@ pub fn _print(args: fmt::Arguments) {
     /* Lock writer and write formatted arguments to VGA buffer. */
     use core::fmt::Write;
     WRITER.lock().write_fmt(args).unwrap();
+}
+
+/*---------------------------------------------------------------------------*/
+
+#[test_case]
+fn test_println_simple() {
+    /* Simply test if `println!` works without panicking. */
+    println!("Hello world!");
+}
+
+#[test_case]
+fn test_println_many() {
+    /* Test printing many lines on screen
+        (and shifting them off display). */
+    for count in 0..200 {
+        println!("This is line {}", count);
+    }
+}
+
+#[test_case]
+fn test_println_output() {
+    /*  Ensure printed chars from string `s` are the same
+        when reading them after operation, from second-to-last row. */
+    let s = "Some test string that fits on a single line";
+    println!("{}", s);
+    for (i, c1) in s.chars().enumerate() {
+        let screen_char = WRITER.lock()
+                .buffer.chars[BUFFER_HEIGHT - 2][i].read();
+        let c2 = char::from(screen_char.ascii_character);
+        assert_eq!(c1, c2);
+    }
 }
