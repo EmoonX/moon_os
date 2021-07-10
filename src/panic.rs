@@ -23,6 +23,6 @@ fn panic(info: &PanicInfo) -> ! {
         and shutdown QEMU with a failed exit code. */
     serial_println!("[failed]");
     serial_println!("Error: {}", info);
-    qemu::exit(qemu::ExitCode::Failed);
+    // qemu::exit(qemu::ExitCode::Failed);
     loop {}
 }

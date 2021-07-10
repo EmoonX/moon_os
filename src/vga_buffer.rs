@@ -224,9 +224,32 @@ fn test_println_output() {
         when reading them after operation, from second-to-last row. */
     let s = "Some test string that fits on a single line";
     println!("{}", s);
-    for (i, c1) in s.chars().enumerate() {
+    for (j, c1) in s.chars().enumerate() {
         let screen_char = WRITER.lock()
-                .buffer.chars[BUFFER_HEIGHT - 2][i].read();
+                .buffer.chars[BUFFER_HEIGHT - 2][j].read();
+        let c2 = char::from(screen_char.ascii_character);
+        assert_eq!(c1, c2);
+    }
+}
+
+#[test_case]
+fn test_print_all() {
+    /* Test if all printable chars are correctly printed in sequence..
+        Also tests line wrapping when reaching BUFFER_WIDTH. */
+    for value in 0x20..=0x7e {
+        // Write char to VGA buffer
+        let c = char::from(value);
+        print!("{}", c);
+    }
+    for value in 0x20..=0x7e {
+        // Check if each char is in its correct position
+        let c1 = char::from(value);
+        let idx = (value - 0x20) as usize;
+        let mut i = idx / BUFFER_WIDTH;
+        i = BUFFER_HEIGHT - 2 + i;
+        let j = idx % BUFFER_WIDTH;
+        let screen_char = WRITER.lock()
+                .buffer.chars[i][j].read();
         let c2 = char::from(screen_char.ascii_character);
         assert_eq!(c1, c2);
     }
