@@ -17,5 +17,5 @@ features = ["spin_no_std"]
 
 [package.metadata.bootimage]  # allows shutdown of QEMU in testing
 test-args = ["-device", "isa-debug-exit,iobase=0xf4,iosize=0x04",
-        "-serial", "stdio"]
+        "-serial", "stdio", "-display", "none"]
 test-success-exit-code = 33  # maps ExitCode::Success, (0x10 << 1) | 1, to 0
