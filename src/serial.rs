@@ -1,7 +1,7 @@
 /*!
  *  Serial port-mapping interface.
  * 
- *  Defines macros to print data from QEMU to outside host console.
+ *  Defines macros to print data from QEMU to outside host's console.
  */
 
 use uart_16550::SerialPort;
