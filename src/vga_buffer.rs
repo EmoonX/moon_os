@@ -242,7 +242,7 @@ fn test_print_all() {
         print!("{}", c);
     }
     for value in 0x20..=0x7e {
-        // Check if each char is in its correct position
+        // Check if each char is in its correct
         let c1 = char::from(value);
         let idx = (value - 0x20) as usize;
         let mut i = idx / BUFFER_WIDTH;

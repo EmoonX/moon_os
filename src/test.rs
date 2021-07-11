@@ -7,7 +7,6 @@ use crate::serial_print;
 use crate::serial_println;
 use crate::qemu;
 
-#[cfg(test)]  // includes test function only for testing
 pub fn runner(tests: &[&dyn Testable]) {
     /* Iterate test functions and run them.
         Exit thereafter with successful exit code. */
@@ -16,12 +15,6 @@ pub fn runner(tests: &[&dyn Testable]) {
         test.run();
     }
     qemu::exit(qemu::ExitCode::Success);
-}
-
-#[test_case]  // defines a test case function
-fn trivial_assertion() {
-    /* Simply trivial assertion that is always true. */
-    assert_eq!(2 + 2, 4);
 }
 
 /*---------------------------------------------------------------------------*/
