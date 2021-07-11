@@ -4,10 +4,8 @@
 #![test_runner(crate::test::runner)]
 #![reexport_test_harness_main = "test_main"]
 
-/**
- *  Library module.
- *  Defines all public modules to be visible 
- *      inside and outside moon_os crate.
+/*!
+ *  Minimal and personal OS project. Made in Rust.
  */
 
 pub mod vga_buffer;
@@ -20,19 +18,23 @@ pub mod test;
 
 use core::panic::PanicInfo;
 
+/**
+ *  Call test panic handler.
+ */
 #[cfg(test)]
 #[panic_handler]
 fn panic(info: &PanicInfo) -> ! {
-    /* Call test panic handler. */
     panic::test_handler(info);
 }
 
+/**
+ *  Entry point for `cargo test`.
+ *  
+ *  Not called in `cargo_run`, as `no_main` is not set in such case.
+ */
 #[cfg(test)]  // includes function only for testing
 #[no_mangle]
 pub extern "C" fn _start() -> ! {
-    /* Entry point for `cargo test`.
-        This is not called in `cargo_run`,
-        as `no_main` is not set in such case. */
     test_main();
     loop {}
 }
