@@ -1,8 +1,10 @@
+cargo-features = ["edition2021"]
+
 [package]
 name = "moon_os"
 version = "0.1.0"
 authors = ["Emoon <gustavo.chicato@usp.br>"]
-edition = "2018"
+edition = "2021"
 
 [dependencies]
 bootloader = "0.9.8"  # assists creation of bootable image

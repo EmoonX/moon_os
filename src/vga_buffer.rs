@@ -16,7 +16,7 @@ use volatile::Volatile;
 #[macro_export]  // makes macro available to whole crate and place it on root
 macro_rules! print {
     ($($arg:tt)*) => (
-        $crate::vga_buffer::_print(format_args!($($arg)*))\
+        $crate::vga_buffer::_print(format_args!($($arg)*))
     );
 }
 
