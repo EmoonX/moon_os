@@ -4,10 +4,11 @@
  *  Defines macros to print data from QEMU to outside host's console.
  */
 
+use core::fmt::Arguments;
+
 use uart_16550::SerialPort;
 use lazy_static::lazy_static;
 use spin::Mutex;
-use core::fmt::Arguments;
 
 /**
  *  Prints to host through the serial interface.
@@ -37,7 +38,9 @@ macro_rules! serial_println {
 const FIRST_SERIAL_PORT: u16 = 0x3F8;
 
 lazy_static! {
-    /// Static mutable serial port interface.
+    /**
+     *  Static mutable serial port interface.
+     */
     pub static ref SERIAL_1: Mutex<SerialPort> = {
         let mut serial_port =
                 unsafe { SerialPort::new(FIRST_SERIAL_PORT) };

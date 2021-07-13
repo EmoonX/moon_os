@@ -4,6 +4,10 @@
 #![test_runner(moon_os::test::runner)]        // defines test runner function
 #![reexport_test_harness_main = "test_main"]  // replaces entry fn in testing
 
+/*!
+ *  Main project module.
+ */
+
 use core::panic::PanicInfo;
 
 use moon_os::println;

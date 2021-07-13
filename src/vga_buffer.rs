@@ -5,6 +5,7 @@
  */
 
 use core::fmt;
+
 use lazy_static::lazy_static;
 use spin::Mutex;
 use volatile::Volatile;
@@ -14,7 +15,9 @@ use volatile::Volatile;
  */
 #[macro_export]  // makes macro available to whole crate and place it on root
 macro_rules! print {
-    ($($arg:tt)*) => ($crate::vga_buffer::_print(format_args!($($arg)*)));
+    ($($arg:tt)*) => (
+        $crate::vga_buffer::_print(format_args!($($arg)*))\
+    );
 }
 
 /**
@@ -25,7 +28,9 @@ macro_rules! print {
 #[macro_export]
 macro_rules! println {
     () => ($crate::print!("\n"));
-    ($($arg:tt)*) => ($crate::print!("{}\n", format_args!($($arg)*)));
+    ($($arg:tt)*) => (
+        $crate::print!("{}\n", format_args!($($arg)*))
+    );
 }
 
 lazy_static! {  // delegates initialization to runtime and thus avoid errors
@@ -38,7 +43,9 @@ lazy_static! {  // delegates initialization to runtime and thus avoid errors
     static ref WRITER: Mutex<Writer> = Mutex::new(Writer {
         top_row_position: BUFFER_HEIGHT - 1,
         column_position: 0,
-        color_code: ColorCode::new(Color::Yellow, Color::Black, false),
+        color_code: ColorCode::new(
+            Color::Yellow, Color::Black, false
+        ),
         buffer: unsafe { &mut *(0xb8000 as *mut Buffer) },
     });
 }
@@ -53,22 +60,22 @@ lazy_static! {  // delegates initialization to runtime and thus avoid errors
 #[allow(dead_code)]  // disable warnings for unused variants
 #[repr(u8)]          // store each variant as `u8`
 enum Color {
-    Black = 0,
-    Blue = 1,
-    Green = 2,
-    Cyan = 3,
-    Red = 4,
-    Magenta = 5,
-    Brown = 6,
-    LightGray = 7,
-    DarkGray = 8,
-    LightBlue = 9,
-    LightGreen = 10,
-    LightCyan = 11,
-    LightRed = 12,
-    Pink = 13,
-    Yellow = 14,
-    White = 15,
+    Black       = 0,
+    Blue        = 1,
+    Green       = 2,
+    Cyan        = 3,
+    Red         = 4,
+    Magenta     = 5,
+    Brown       = 6,
+    LightGray   = 7,
+    DarkGray    = 8,
+    LightBlue   = 9,
+    LightGreen  = 10,
+    LightCyan   = 11,
+    LightRed    = 12,
+    Pink        = 13,
+    Yellow      = 14,
+    White       = 15,
 }
 
 /** 

@@ -3,6 +3,7 @@
  */
 
 use core::any::type_name;
+
 use crate::serial_print;
 use crate::serial_println;
 use crate::qemu;

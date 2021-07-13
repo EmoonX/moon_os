@@ -5,7 +5,7 @@
 #![reexport_test_harness_main = "test_main"]
 
 /*!
- *  Minimal and personal OS project. Made in Rust.
+ *  Minimal and personal OS project based on `blog_os`. Made in Rust.
  */
 
 pub mod vga_buffer;
@@ -19,7 +19,7 @@ pub mod test;
 use core::panic::PanicInfo;
 
 /**
- *  Call test panic handler.
+ *  Calls test panic handler.
  */
 #[cfg(test)]
 #[panic_handler]
