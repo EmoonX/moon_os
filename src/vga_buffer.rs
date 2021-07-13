@@ -35,9 +35,9 @@ macro_rules! println {
 
 lazy_static! {  // delegates initialization to runtime and thus avoid errors
     /**
-     *  Global `Writer` to be used as an interface.
+     *  Global [`Writer`] to be used as an interface.
      * 
-     *  Spinlock (non-threading) `Mutex` guarantees
+     *  Spinlock (non-threading) [`Mutex`] guarantees
      *  synchronized safe mutability.
      */
     static ref WRITER: Mutex<Writer> = Mutex::new(Writer {
@@ -237,14 +237,12 @@ impl Writer {
 }
 
 /**
- *  Implements `Write` trait to `Writer`,
+ *  Implements `fmt::Write` trait to [`Writer`],
  *  enabling use of `write!` macro.
  */
 impl fmt::Write for Writer {
     /** 
-     *  Required trait method.
-     * 
-     *  Just wraps `Writer::write_string` call, returning successfully.
+     *  Just wraps [`Writer::write_string`] call, returning successfully.
      */
     fn write_str(&mut self, s: &str) -> fmt::Result {
         self.write_string(s);
@@ -301,7 +299,7 @@ fn test_println_output() {
 /**
  *  Tests if all printable chars are correctly printed in sequence.
  * 
- *  Also tests line wrapping when reaching BUFFER_WIDTH.
+ *  Also tests line wrapping when reaching `BUFFER_WIDTH.
  */
 #[test_case]
 fn test_print_all() {
