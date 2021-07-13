@@ -42,6 +42,7 @@ fn panic(info: &core::panic::PanicInfo) -> ! {
 #[cfg(test)]  // includes function only for testing
 #[no_mangle]
 pub extern "C" fn _start() -> ! {
+    init();
     test_main();
     loop {}
 }

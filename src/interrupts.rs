@@ -40,3 +40,12 @@ extern "x86-interrupt" fn breakpoint_handler(
 {
     println!("EXCEPTION: BREAKPOINT\n{:#?}", stack_frame);
 }
+
+/**
+ *  Executes an INT3 instruction, thus triggering
+ *  a breakpoint exception.
+ */
+#[test_case]
+fn test_breakpoint_exception() {
+    x86_64::instructions::interrupts::int3();
+}
