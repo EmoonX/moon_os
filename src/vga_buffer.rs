@@ -11,9 +11,9 @@ use spin::Mutex;
 use volatile::Volatile;
 
 /** 
- *  Formats arguments and prints to VGA buffer.
+ *  Formats arguments and prints string to VGA buffer.
  */
-#[macro_export]  // makes macro available to whole crate and place it on root
+#[macro_export]  // makes macro available to whole crate in its root
 macro_rules! print {
     ($($arg:tt)*) => (
         $crate::vga_buffer::_print(format_args!($($arg)*))
@@ -21,7 +21,8 @@ macro_rules! print {
 }
 
 /**
- *  Formats arguments and prints, appending a newline, to VGA buffer.
+ *  Formats arguments and prints string,
+ *  appending a newline, to VGA buffer.
  * 
  *  If no args are given, just print a newline.
  */
