@@ -190,6 +190,7 @@ impl Writer {
             }
         }
     }
+    
     /**
      *  Writes given string to buffer, byte by byte.
      */
@@ -204,6 +205,7 @@ impl Writer {
             }
         }
     }
+
     /**
      *  Iterates buffer matrix and moves each row content
      *  to the row immediately above (row 0 is just deleted instead). 

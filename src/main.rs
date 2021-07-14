@@ -32,10 +32,12 @@ pub extern "C" fn _start() -> ! {
     // panic!("Some panic message");
 
     // Triggers a page fault
+    fn stack_overflow() {
+        stack_overflow();
+    }
+    // Triggers a stack overflow
     moon_os::init();
-    unsafe {
-        *(0xdeadbeef as *mut u64) = 42;
-    };
+    stack_overflow();
 
     #[cfg(test)]
     test_main();
