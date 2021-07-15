@@ -26,6 +26,16 @@ pub fn init(is_test: bool) {
     interrupts::init();
 }
 
+/**
+ *  Uses `hlt` instruction to halt CPU, thus avoiding
+ *  running an endless loop at full speed.
+ */
+pub fn hlt_loop() -> ! {
+    loop {
+        x86_64::instructions::hlt();
+    }
+}
+
 /*---------------------------------------------------------------------------*/
 
 /**
@@ -47,5 +57,5 @@ fn panic(info: &core::panic::PanicInfo) -> ! {
 pub extern "C" fn _start() -> ! {
     init(true);
     test_main();
-    loop {}
+    hlt_loop();
 }

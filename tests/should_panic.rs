@@ -39,5 +39,4 @@ pub extern "C" fn _start() -> ! {
     should_fail();
     serial_println!("[test did not panic!]");
     qemu::exit(qemu::ExitCode::Failed);
-    loop {}
 }

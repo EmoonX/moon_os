@@ -13,7 +13,7 @@ use crate::qemu;
  */
 pub fn handler(info: &PanicInfo) -> ! {
     println!("{}", info);
-    loop {}
+    crate::hlt_loop();
 }
 
 /**

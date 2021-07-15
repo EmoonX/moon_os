@@ -37,10 +37,7 @@ pub extern "C" fn _start() -> ! {
     test_main();
 
     println!("It did not crash!");
-    loop {
-        moon_os::print!("-");
-        for _ in 0..10000 {}
-    }
+    moon_os::hlt_loop();
 }
 
 /*---------------------------------------------------------------------------*/
