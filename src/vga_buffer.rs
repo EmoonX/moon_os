@@ -7,7 +7,6 @@
 use core::fmt;
 
 use lazy_static::lazy_static;
-use spin::Mutex;
 use volatile::Volatile;
 
 /** 
@@ -257,11 +256,16 @@ impl fmt::Write for Writer {
 
 /**
  *  Locks writer and writes formatted arguments to VGA buffer.
+ * 
+ *  Interrupts are disabled whilst the printing procedure is run.
  */
 #[doc(hidden)]  // Hide function from the docs, regardless of being public
 pub fn _print(args: fmt::Arguments) {
     use core::fmt::Write;
-    WRITER.lock().write_fmt(args).unwrap();
+    use x86_64::instructions::interrupts;
+    interrupts::without_interrupts(|| {
+        WRITER.lock().write_fmt(args).unwrap();
+    });
 }
 
 /*---------------------------------------------------------------------------*/

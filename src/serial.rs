@@ -8,7 +8,6 @@ use core::fmt::Arguments;
 
 use uart_16550::SerialPort;
 use lazy_static::lazy_static;
-use spin::Mutex;
 
 /**
  *  Prints to host through the serial interface.
@@ -41,11 +40,11 @@ lazy_static! {
     /**
      *  Static mutable serial port interface.
      */
-    pub static ref SERIAL_1: Mutex<SerialPort> = {
+    pub static ref SERIAL_1: spin::Mutex<SerialPort> = {
         let mut serial_port =
-                unsafe { SerialPort::new(FIRST_SERIAL_PORT) };
+            unsafe { SerialPort::new(FIRST_SERIAL_PORT) };
         serial_port.init();
-        Mutex::new(serial_port)
+        spin::Mutex::new(serial_port)
     };
 }
 
@@ -53,10 +52,16 @@ lazy_static! {
 
 /**
  *  Locks serial interface and writes formatted arguments to port.
+ *
+ *  Interrupts are disabled whilst the printing procedure is run.
  */
 #[doc(hidden)]
 pub fn _print(args: Arguments) {
     use core::fmt::Write;
-    SERIAL_1.lock().write_fmt(args)
+    use x86_64::instructions::interrupts;
+    interrupts::without_interrupts(|| {
+        SERIAL_1.lock()
+            .write_fmt(args)
             .expect("Printing to serial failed...");
+    });
 }
