@@ -19,10 +19,11 @@ pub enum ExitCode {
  *  Writes exit code to `isa-debug-exit` port,
  *  thereafter shutting down QEMU.
  */
-pub fn exit(exit_code: ExitCode) {
+pub fn exit(exit_code: ExitCode) -> ! {
     const IOBASE: u16 = 0xf4;
     let mut port = Port::new(IOBASE);
     unsafe {
         port.write(exit_code as u32);
     }
+    loop {}
 }

@@ -8,18 +8,9 @@
  *  Basic boot testing.
  */
 
-use core::panic::PanicInfo;
+mod util;
 
 use moon_os::println;
-use moon_os::panic;
-
-/**
- *  Calls test panic handler.
- */
-#[panic_handler]
-fn panic(info: &PanicInfo) -> ! {
-    panic::test_handler(info);
-}
 
 /**
  *  Tests `println!` in a basic boot.

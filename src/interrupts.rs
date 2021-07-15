@@ -59,7 +59,6 @@ extern "x86-interrupt" fn double_fault_handler(
     if crate::test::is_enabled() {
         serial_println!("[ok]");
         qemu::exit(qemu::ExitCode::Success);
-        loop {}
     }
     panic!("[EXCEPTION] DOUBLE FAULT\n{:#?}", stack_frame);
 }

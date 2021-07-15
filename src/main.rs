@@ -31,14 +31,6 @@ pub extern "C" fn _start() -> ! {
     println!("Hello world {} {} {} {}", 1, 2, 3, '!');
     // panic!("Some panic message");
 
-    // Triggers a page fault
-    fn stack_overflow() {
-        stack_overflow();
-    }
-    // Triggers a stack overflow
-    moon_os::init(false);
-    stack_overflow();
-
     #[cfg(test)]
     test_main();
 

@@ -10,12 +10,11 @@
  *  Tests if Double Fault handler is working correctly.
  */
 
-use core::panic::PanicInfo;
+mod util;
 
 use volatile::Volatile;
 
 use moon_os::serial_print;
-use moon_os::panic;
 
 /**
  *  Causes a stack oveflow by recursing endlessly.
@@ -27,14 +26,6 @@ use moon_os::panic;
 fn stack_overflow() {
     stack_overflow();
     Volatile::new(0).read();
-}
-
-/**
- *  Calls test panic handler.
- */
-#[panic_handler]
-fn panic(info: &PanicInfo) -> ! {
-    panic::test_handler(info);
 }
 
 #[no_mangle]
