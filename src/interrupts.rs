@@ -2,6 +2,7 @@
  *  Interrupts and CPU exceptions.
  */
 
+use x86_64::instructions::port::PortGeneric;
 use x86_64::structures::idt::{
     InterruptDescriptorTable, InterruptStackFrame
 };
@@ -83,6 +84,8 @@ lazy_static! {
 /*---------------------------------------------------------------------------*/
 
 /**
+ *  Timer interrupt handler, called on each timer tick.
+ *
  *  Prints dot and notifies EOI, thus enabling interrupt again.
  */
 extern "x86-interrupt" fn timer_handler(
@@ -95,10 +98,26 @@ extern "x86-interrupt" fn timer_handler(
     }
 }
 
+/**
+ *  Keyboard interrupt handler, called on key presses.
+ *
+ *  Gets key scancode from PS2 data port and prints it.
+ */
 extern "x86-interrupt" fn keyboard_handler(
     _stack_frame: InterruptStackFrame)
 {
-    print!("*");
+    use x86_64::instructions::port::{Port, ReadWriteAccess};
+
+    // Build port connected to PS2 interface 
+    const PS2_DATA_PORT: u16 = 0x60;
+    static mut PORT: PortGeneric<u8, ReadWriteAccess> =
+        Port::new(PS2_DATA_PORT);
+    
+    // Read key scancode from port and print it on screen
+    let scancode = unsafe { PORT.read() };
+    print!("{}", scancode);
+
+    // Notify EOI for re-enabling key presses
     unsafe {
         PICS.lock().notify_end_of_interrupt(
             InterruptIndex::Keyboard as u8);
