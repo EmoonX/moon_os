@@ -8,6 +8,7 @@ use core::fmt;
 
 use lazy_static::lazy_static;
 use volatile::Volatile;
+use x86_64::instructions::interrupts::without_interrupts;
 
 /** 
  *  Formats arguments and prints string to VGA buffer.
@@ -262,8 +263,7 @@ impl fmt::Write for Writer {
 #[doc(hidden)]  // Hide function from the docs, regardless of being public
 pub fn _print(args: fmt::Arguments) {
     use core::fmt::Write;
-    use x86_64::instructions::interrupts;
-    interrupts::without_interrupts(|| {
+    without_interrupts(|| {
         WRITER.lock().write_fmt(args).unwrap();
     });
 }
@@ -295,14 +295,25 @@ fn test_println_many() {
  */
 #[test_case]
 fn test_println_output() {
+    use core::fmt::Write;
+
     let s = "Some test string that fits on a single line";
-    println!("{}", s);
-    for (j, c1) in s.chars().enumerate() {
-        let screen_char = WRITER.lock()
-                .buffer.chars[BUFFER_HEIGHT - 2][j].read();
-        let c2 = char::from(screen_char.ascii_character);
-        assert_eq!(c1, c2);
-    }
+    without_interrupts(|| {
+        // Locks writer for writing. '\n' is needed to ensure
+        // string is written at the start of a fresh new line.
+        let mut writer = WRITER.lock();
+        writeln!(writer, "\n{}", s).expect("writeln! failed");
+
+        // Checks if chars are indeed in the correct screen positions.
+        // Interrupts are still disabled by the mutex lock
+        // to ensure no '.'s are written by the Timer meanwhile.
+        for (j, c1) in s.chars().enumerate() {
+            const I: usize = BUFFER_HEIGHT - 2;
+            let screen_char = writer.buffer.chars[I][j].read();
+            let c2 = char::from(screen_char.ascii_character);
+            assert_eq!(c1, c2);
+        }
+    });
 }
 
 /**
@@ -312,21 +323,27 @@ fn test_println_output() {
  */
 #[test_case]
 fn test_print_all() {
-    for value in 0x20..=0x7e {
-        // Write char to VGA buffer
-        let c = char::from(value);
-        print!("{}", c);
-    }
-    for value in 0x20..=0x7e {
-        // Check if each char is in its correct
-        let c1 = char::from(value);
-        let idx = (value - 0x20) as usize;
-        let mut i = idx / BUFFER_WIDTH;
-        i = BUFFER_HEIGHT - 2 + i;
-        let j = idx % BUFFER_WIDTH;
-        let screen_char = WRITER.lock()
-                .buffer.chars[i][j].read();
-        let c2 = char::from(screen_char.ascii_character);
-        assert_eq!(c1, c2);
-    }
+    use core::fmt::Write;
+
+    without_interrupts(|| {
+        let mut writer = WRITER.lock();
+        writeln!(writer, "").expect("writeln! failed");
+
+        // Writes chars to VGA buffer
+        for value in 0x20..=0x7e {
+            let c = char::from(value);
+            write!(writer, "{}", c).expect("write! failed");
+        }
+        // Checks if each char is in their correct position
+        for value in 0x20..=0x7e {
+            let c1 = char::from(value);
+            let idx = (value - 0x20) as usize;
+            let mut i = idx / BUFFER_WIDTH;
+            i = BUFFER_HEIGHT - 2 + i;
+            let j = idx % BUFFER_WIDTH;
+            let screen_char = writer.buffer.chars[i][j].read();
+            let c2 = char::from(screen_char.ascii_character);
+            assert_eq!(c1, c2);
+        }
+    });
 }
