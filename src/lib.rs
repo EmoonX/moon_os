@@ -17,10 +17,12 @@ pub mod gdt;
 pub mod panic;
 pub mod test;
 
+
 /**
  *  Calls OS initialization routines.
  */
-pub fn init() {
+pub fn init(is_test: bool) {
+    unsafe { test::ENABLED =  is_test };
     interrupts::init_idt();
     gdt::init();
 }
@@ -44,7 +46,7 @@ fn panic(info: &core::panic::PanicInfo) -> ! {
 #[cfg(test)]  // includes function only for testing
 #[no_mangle]
 pub extern "C" fn _start() -> ! {
-    init();
+    init(true);
     test_main();
     loop {}
 }

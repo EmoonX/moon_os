@@ -36,7 +36,7 @@ pub extern "C" fn _start() -> ! {
         stack_overflow();
     }
     // Triggers a stack overflow
-    moon_os::init();
+    moon_os::init(false);
     stack_overflow();
 
     #[cfg(test)]

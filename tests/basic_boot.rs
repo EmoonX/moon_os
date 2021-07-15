@@ -14,7 +14,7 @@ use moon_os::println;
 use moon_os::panic;
 
 /**
- *  Call test panic handler.
+ *  Calls test panic handler.
  */
 #[panic_handler]
 fn panic(info: &PanicInfo) -> ! {

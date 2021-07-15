@@ -1,5 +1,8 @@
 /*!
- *  
+ *  Global Descriptor Table (GDT).
+ *
+ *  Particularly handles Task State Segment (TSS) with a Interrupt
+ *  Descriptor Table (IDT) stack, which is swiched to on exceptions.
  */
 
 use x86_64::structures::{

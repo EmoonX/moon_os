@@ -8,6 +8,9 @@ use crate::serial_print;
 use crate::serial_println;
 use crate::qemu;
 
+/// Global indicates whether testing is being run or not
+pub static mut ENABLED: bool = false;
+
 /** 
  *  Iterates test functions and runs them.
  * 
@@ -19,6 +22,10 @@ pub fn runner(tests: &[&dyn Testable]) {
         test.run();
     }
     qemu::exit(qemu::ExitCode::Success);
+}
+
+pub fn is_enabled() -> bool {
+    unsafe { ENABLED }
 }
 
 /*---------------------------------------------------------------------------*/

@@ -32,7 +32,7 @@ lazy_static! {
 /**
  *  Loads IDT to CPU.
  */
-pub fn init_idt() {    
+pub fn init_idt() {
     IDT.load();
 }
 
@@ -56,10 +56,18 @@ extern "x86-interrupt" fn breakpoint_handler(
 extern "x86-interrupt" fn double_fault_handler(
     stack_frame: InterruptStackFrame, _error_code: u64) -> !
 {
+    if crate::test::is_enabled() {
+        serial_println!("[ok]");
+        qemu::exit(qemu::ExitCode::Success);
+        loop {}
+    }
     panic!("[EXCEPTION] DOUBLE FAULT\n{:#?}", stack_frame);
 }
 
 /*---------------------------------------------------------------------------*/
+
+use crate::serial_println;
+use crate::qemu;
 
 /**
  *  Executes an INT3 instruction, thus triggering
