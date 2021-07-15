@@ -49,6 +49,7 @@ pub static PICS: spin::Mutex<ChainedPics> = spin::Mutex::new(
 #[repr(u8)]
 enum InterruptIndex {
     Timer = PIC_1_OFFSET,
+    Keyboard,
 }
 
 lazy_static! {
@@ -60,14 +61,21 @@ lazy_static! {
      */
     static ref IDT: InterruptDescriptorTable = {
         let mut idt = InterruptDescriptorTable::new();
+
+        // Exception handlers
         idt.breakpoint.set_handler_fn(exceptions::breakpoint_handler);
         unsafe {
             idt.double_fault
                 .set_handler_fn(exceptions::double_fault_handler)
                 .set_stack_index(gdt::DOUBLE_FAULT_IST_INDEX);
         }
+
+        // Normal interrupt handlers
         idt[InterruptIndex::Timer as usize]
-            .set_handler_fn(timer_interrupt_handler);
+            .set_handler_fn(timer_handler);
+        idt[InterruptIndex::Keyboard as usize]
+            .set_handler_fn(keyboard_handler);
+        
         idt
     };
 }
@@ -77,13 +85,23 @@ lazy_static! {
 /**
  *  Prints dot and notifies EOI, thus enabling interrupt again.
  */
-extern "x86-interrupt" fn timer_interrupt_handler(
+extern "x86-interrupt" fn timer_handler(
     _stack_frame: InterruptStackFrame)
 {
     print!(".");
     unsafe {
         PICS.lock().notify_end_of_interrupt(
             InterruptIndex::Timer as u8);
+    }
+}
+
+extern "x86-interrupt" fn keyboard_handler(
+    _stack_frame: InterruptStackFrame)
+{
+    print!("*");
+    unsafe {
+        PICS.lock().notify_end_of_interrupt(
+            InterruptIndex::Keyboard as u8);
     }
 }
 
