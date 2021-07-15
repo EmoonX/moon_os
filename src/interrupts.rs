@@ -98,10 +98,17 @@ extern "x86-interrupt" fn double_fault_handler(
     panic!("[EXCEPTION] DOUBLE FAULT\n{:#?}", stack_frame);
 }
 
+/**
+ *  Prints dot and notifies EOI, thus enabling interrupt again.
+ */
 extern "x86-interrupt" fn timer_interrupt_handler(
     _stack_frame: InterruptStackFrame)
 {
     print!(".");
+    unsafe {
+        PICS.lock().notify_end_of_interrupt(
+            InterruptIndex::Timer as u8);
+    }
 }
 
 /*---------------------------------------------------------------------------*/
