@@ -1,14 +1,29 @@
 /*!
- *  Interrupt handlers for catching CPU exceptions.
+ *  Interrupts and CPU exceptions.
  */
 
 use x86_64::structures::idt::{
     InterruptDescriptorTable, InterruptStackFrame
 };
+use x86_64::instructions::interrupts;
+use pic8259::ChainedPics;
 use lazy_static::lazy_static;
 
 use crate::gdt;
 use crate::println;
+
+/**
+ *  Loading and initialization procedures.
+ */
+ pub fn init() {
+    // Loads IDT and set it on GDT's TSS
+    IDT.load();
+    gdt::init();
+
+    // Initializes PICs and enable CPU listening to interrupts
+    unsafe { PICS.lock().initialize() };
+    interrupts::enable();
+}
 
 lazy_static! {
     /**
@@ -29,12 +44,22 @@ lazy_static! {
     };
 }
 
+/// Primary PIC's vector number offset
+const PIC_1_OFFSET: u8 = 32;
+
+/// Secondary PIC's vector number offset
+const PIC_2_OFFSET: u8 = PIC_1_OFFSET + 8;
+
 /**
- *  Loads IDT to CPU.
+ *  Programmable Interrupt Controllers (PICs) in chained x86 structure.
  */
-pub fn init_idt() {
-    IDT.load();
-}
+pub static PICS: spin::Mutex<ChainedPics> = spin::Mutex::new(
+    unsafe {
+        ChainedPics::new(PIC_1_OFFSET, PIC_2_OFFSET)
+    }
+);
+
+/*---------------------------------------------------------------------------*/
 
 /**
  *  Breakpoint exception handler.

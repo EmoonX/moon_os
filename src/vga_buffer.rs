@@ -41,14 +41,16 @@ lazy_static! {  // delegates initialization to runtime and thus avoid errors
      *  Spinlock (non-threading) [`Mutex`] guarantees
      *  synchronized safe mutability.
      */
-    static ref WRITER: Mutex<Writer> = Mutex::new(Writer {
-        top_row_position: BUFFER_HEIGHT - 1,
-        column_position: 0,
-        color_code: ColorCode::new(
-            Color::Yellow, Color::Black, false
-        ),
-        buffer: unsafe { &mut *(0xb8000 as *mut Buffer) },
-    });
+    static ref WRITER: spin::Mutex<Writer> = spin::Mutex::new(
+        Writer {
+            top_row_position: BUFFER_HEIGHT - 1,
+            column_position: 0,
+            color_code: ColorCode::new(
+                Color::Yellow, Color::Black, false
+            ),
+            buffer: unsafe { &mut *(0xb8000 as *mut Buffer) },
+        }
+    );
 }
 
 /*---------------------------------------------------------------------------*/
@@ -190,7 +192,7 @@ impl Writer {
             }
         }
     }
-    
+
     /**
      *  Writes given string to buffer, byte by byte.
      */

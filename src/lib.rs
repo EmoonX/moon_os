@@ -23,8 +23,7 @@ pub mod test;
  */
 pub fn init(is_test: bool) {
     unsafe { test::ENABLED =  is_test };
-    interrupts::init_idt();
-    gdt::init();
+    interrupts::init();
 }
 
 /*---------------------------------------------------------------------------*/

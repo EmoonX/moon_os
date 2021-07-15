@@ -31,6 +31,8 @@ pub extern "C" fn _start() -> ! {
     println!("Hello world {} {} {} {}", 1, 2, 3, '!');
     // panic!("Some panic message");
 
+    moon_os::init(false);
+
     #[cfg(test)]
     test_main();
 

@@ -12,6 +12,7 @@ volatile = "0.2.6"    # volatile variables avoid compiler optimizing away data
 spin = "0.5.2"        # spinlock mutex for synchronized safe internal mutability
 x86_64 = "0.14.2"     # enables port-mapped I/O abstractions
 uart_16550 = "0.2.0"  # implements UART to send data over serial port
+pic8259 = "0.10.1"   
 
 [dependencies.lazy_static]  # delegates initialization of static variables
 version = "1.0"
