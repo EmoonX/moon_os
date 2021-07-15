@@ -20,7 +20,6 @@ use moon_os::qemu;
 fn panic(_info: &PanicInfo) -> ! {
     serial_println!("[ok]");
     qemu::exit(qemu::ExitCode::Success);
-    loop {}
 }
 
 /**

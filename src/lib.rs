@@ -13,7 +13,8 @@ pub mod vga_buffer;
 pub mod serial;
 pub mod qemu;
 pub mod interrupts;
-pub mod gdt;
+mod gdt;
+mod exceptions;
 pub mod panic;
 pub mod test;
 

@@ -10,7 +10,8 @@ use pic8259::ChainedPics;
 use lazy_static::lazy_static;
 
 use crate::gdt;
-use crate::{print, println};
+use crate::exceptions;
+use crate::print;
 
 /**
  *  Loading and initialization procedures.
@@ -24,6 +25,8 @@ use crate::{print, println};
     unsafe { PICS.lock().initialize() };
     interrupts::enable();
 }
+
+/*---------------------------------------------------------------------------*/
 
 /// Primary PIC's vector number offset
 const PIC_1_OFFSET: u8 = 32;
@@ -57,10 +60,10 @@ lazy_static! {
      */
     static ref IDT: InterruptDescriptorTable = {
         let mut idt = InterruptDescriptorTable::new();
-        idt.breakpoint.set_handler_fn(breakpoint_handler);
+        idt.breakpoint.set_handler_fn(exceptions::breakpoint_handler);
         unsafe {
             idt.double_fault
-                .set_handler_fn(double_fault_handler)
+                .set_handler_fn(exceptions::double_fault_handler)
                 .set_stack_index(gdt::DOUBLE_FAULT_IST_INDEX);
         }
         idt[InterruptIndex::Timer as usize]
@@ -70,33 +73,6 @@ lazy_static! {
 }
 
 /*---------------------------------------------------------------------------*/
-
-/**
- *  Breakpoint exception handler.
- *
- *  Triggered by execution of an INT3 instruction.
- */
-extern "x86-interrupt" fn breakpoint_handler(
-    stack_frame: InterruptStackFrame)
-{
-    println!("[EXCEPTION] BREAKPOINT\n{:#?}", stack_frame);
-}
-
-/**
- *  Double Fault exception handler.
- *
- *  Triggered when an exception occurs when handling
- *  a previous exception.
- */
-extern "x86-interrupt" fn double_fault_handler(
-    stack_frame: InterruptStackFrame, _error_code: u64) -> !
-{
-    if crate::test::is_enabled() {
-        serial_println!("[ok]");
-        qemu::exit(qemu::ExitCode::Success);
-    }
-    panic!("[EXCEPTION] DOUBLE FAULT\n{:#?}", stack_frame);
-}
 
 /**
  *  Prints dot and notifies EOI, thus enabling interrupt again.
@@ -112,9 +88,6 @@ extern "x86-interrupt" fn timer_interrupt_handler(
 }
 
 /*---------------------------------------------------------------------------*/
-
-use crate::serial_println;
-use crate::qemu;
 
 /**
  *  Executes an INT3 instruction, thus triggering
