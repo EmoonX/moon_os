@@ -12,7 +12,7 @@ use x86_64::instructions::port::Port;
 #[repr(u32)]
 pub enum ExitCode {
     Success = 0x10,
-    Failed = 0x11,
+    Failed  = 0x11,
 }
 
 /** 

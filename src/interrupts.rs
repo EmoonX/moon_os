@@ -29,6 +29,37 @@ use crate::println;
 
 /*---------------------------------------------------------------------------*/
 
+lazy_static! {
+    /**
+     *  Interrupt Descriptor Table (IDT).
+     *
+     *  Should be available for the complete program runtime
+     *  (thus `static`) and set up all interrupt handlers on init.
+     */
+    static ref IDT: InterruptDescriptorTable = {
+        let mut idt = InterruptDescriptorTable::new();
+
+        // Exception handlers
+        idt.breakpoint
+            .set_handler_fn(exceptions::breakpoint_handler);
+        unsafe {
+            idt.double_fault
+                .set_handler_fn(exceptions::double_fault_handler)
+                .set_stack_index(gdt::DOUBLE_FAULT_IST_INDEX);
+        }
+        idt.page_fault
+            .set_handler_fn(exceptions::page_fault_handler);
+
+        // Normal interrupt handlers
+        idt[InterruptIndex::Timer as usize]
+            .set_handler_fn(timer_handler);
+        idt[InterruptIndex::Keyboard as usize]
+            .set_handler_fn(keyboard_handler);
+        
+        idt
+    };
+}
+
 /// Primary PIC's vector number offset
 const PIC_1_OFFSET: u8 = 32;
 
@@ -47,39 +78,11 @@ pub static PICS: spin::Mutex<ChainedPics> = spin::Mutex::new(
 /**
  *  PIC interrupt indices, starting by default at 32.
  */
-#[repr(u8)]
-enum InterruptIndex {
-    Timer = PIC_1_OFFSET,
-    Keyboard,
-}
-
-lazy_static! {
-    /**
-     *  Interrupt Descriptor Table (IDT).
-     *
-     *  Should be available for the complete program runtime
-     *  (thus `static`) and set up all interrupt handlers on init.
-     */
-    static ref IDT: InterruptDescriptorTable = {
-        let mut idt = InterruptDescriptorTable::new();
-
-        // Exception handlers
-        idt.breakpoint.set_handler_fn(exceptions::breakpoint_handler);
-        unsafe {
-            idt.double_fault
-                .set_handler_fn(exceptions::double_fault_handler)
-                .set_stack_index(gdt::DOUBLE_FAULT_IST_INDEX);
-        }
-
-        // Normal interrupt handlers
-        idt[InterruptIndex::Timer as usize]
-            .set_handler_fn(timer_handler);
-        idt[InterruptIndex::Keyboard as usize]
-            .set_handler_fn(keyboard_handler);
-        
-        idt
-    };
-}
+ #[repr(u8)]
+ enum InterruptIndex {
+     Timer = PIC_1_OFFSET,
+     Keyboard,
+ }
 
 /*---------------------------------------------------------------------------*/
 
@@ -118,7 +121,7 @@ extern "x86-interrupt" fn keyboard_handler(
         Port::new(PS2_DATA_PORT);
     
     // Defines static `Keyboard` object.
-    // Follows US layout PS/2 Set 1. Ctrl keys are ignored.
+    // Follows US layout PS/2 Set 1; Ctrl keys are ignored.
     lazy_static! {
         static ref KEYBOARD: spin::Mutex<
             Keyboard<layouts::Us104Key, ScancodeSet1>
@@ -157,15 +160,4 @@ extern "x86-interrupt" fn keyboard_handler(
         PICS.lock().notify_end_of_interrupt(
             InterruptIndex::Keyboard as u8);
     }
-}
-
-/*---------------------------------------------------------------------------*/
-
-/**
- *  Executes an INT3 instruction, thus triggering
- *  a breakpoint exception.
- */
-#[test_case]
-fn test_breakpoint_exception() {
-    x86_64::instructions::interrupts::int3();
 }

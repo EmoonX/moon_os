@@ -1,5 +1,6 @@
 #![no_std]   // don't link Rust's stdlib
 #![no_main]  // disable all Rust-level entry points
+#![feature(core_intrinsics)]
 #![feature(custom_test_frameworks)]           // replaces std test framework
 #![test_runner(moon_os::test::runner)]        // defines test runner function
 #![reexport_test_harness_main = "test_main"]  // replaces entry fn in testing
@@ -32,6 +33,8 @@ pub extern "C" fn _start() -> ! {
     // panic!("Some panic message");
 
     moon_os::init(false);
+
+    unsafe { *(0xdeadbeef as *mut u64) = 42; }
 
     #[cfg(test)]
     test_main();
