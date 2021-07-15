@@ -12,7 +12,7 @@ use lazy_static::lazy_static;
 
 use crate::gdt;
 use crate::exceptions;
-use crate::print;
+use crate::println;
 
 /**
  *  Loading and initialization procedures.
@@ -91,7 +91,7 @@ lazy_static! {
 extern "x86-interrupt" fn timer_handler(
     _stack_frame: InterruptStackFrame)
 {
-    print!(".");
+    //print!(".");
     unsafe {
         PICS.lock().notify_end_of_interrupt(
             InterruptIndex::Timer as u8);
@@ -108,16 +108,32 @@ extern "x86-interrupt" fn keyboard_handler(
 {
     use x86_64::instructions::port::{Port, ReadWriteAccess};
 
-    // Build port connected to PS2 interface 
+    // Builds port connected to PS2 interface 
     const PS2_DATA_PORT: u16 = 0x60;
     static mut PORT: PortGeneric<u8, ReadWriteAccess> =
         Port::new(PS2_DATA_PORT);
     
-    // Read key scancode from port and print it on screen
+    // Reads key scancode from port and gets respective key name
     let scancode = unsafe { PORT.read() };
-    print!("{}", scancode);
+    let key = match scancode {
+        0x02 => "1",
+        0x03 => "2",
+        0x04 => "3",
+        0x05 => "4",
+        0x06 => "5",
+        0x07 => "6",
+        0x08 => "7",
+        0x09 => "8",
+        0x0a => "9",
+        0x0b => "0",
+        _ => "None",
+    };
+    // If key is a valid mapped one, prints it
+    if key != "None" {
+        println!("{}", key);
+    }
 
-    // Notify EOI for re-enabling key presses
+    // Notifies EOI for re-enabling key presses
     unsafe {
         PICS.lock().notify_end_of_interrupt(
             InterruptIndex::Keyboard as u8);
