@@ -1,5 +1,5 @@
 /*!
- *  Interrupts and CPU exceptions.
+ *  Interrupts handling.
  */
 
 use x86_64::instructions::port::PortGeneric;
@@ -86,7 +86,7 @@ lazy_static! {
 /**
  *  Timer interrupt handler, called on each timer tick.
  *
- *  Prints dot and notifies EOI, thus enabling interrupt again.
+ *  Prints `'.'` and notifies EOI, thus enabling Timer interrupt again.
  */
 extern "x86-interrupt" fn timer_handler(
     _stack_frame: InterruptStackFrame)
@@ -101,38 +101,57 @@ extern "x86-interrupt" fn timer_handler(
 /**
  *  Keyboard interrupt handler, called on key presses.
  *
- *  Gets key scancode from PS2 data port and prints it.
+ *  Receives key scancode from PS/2 data port and prints
+ *  respective key, decoded from [`pc_keyboard`] crate.
  */
 extern "x86-interrupt" fn keyboard_handler(
     _stack_frame: InterruptStackFrame)
 {
     use x86_64::instructions::port::{Port, ReadWriteAccess};
+    use pc_keyboard::{
+        layouts, DecodedKey, HandleControl, Keyboard, ScancodeSet1
+    };
 
     // Builds port connected to PS2 interface 
     const PS2_DATA_PORT: u16 = 0x60;
     static mut PORT: PortGeneric<u8, ReadWriteAccess> =
         Port::new(PS2_DATA_PORT);
     
-    // Reads key scancode from port and gets respective key name
-    let scancode = unsafe { PORT.read() };
-    let key = match scancode {
-        0x02 => "1",
-        0x03 => "2",
-        0x04 => "3",
-        0x05 => "4",
-        0x06 => "5",
-        0x07 => "6",
-        0x08 => "7",
-        0x09 => "8",
-        0x0a => "9",
-        0x0b => "0",
-        _ => "None",
-    };
-    // If key is a valid mapped one, prints it
-    if key != "None" {
-        println!("{}", key);
+    // Defines static `Keyboard` object.
+    // Follows US layout PS/2 Set 1. Ctrl keys are ignored.
+    lazy_static! {
+        static ref KEYBOARD: spin::Mutex<
+            Keyboard<layouts::Us104Key, ScancodeSet1>
+        > =
+            spin::Mutex::new(
+                Keyboard::new(layouts::Us104Key,
+                    ScancodeSet1, HandleControl::Ignore)
+            )
+        ;
     }
-
+    // Reads key scancode from port, gets key event from it and
+    // processes it afterwards, printing character or key on screen.
+    let scancode = unsafe { PORT.read() };
+    let mut keyboard = KEYBOARD.lock();
+    if let Ok(Some(key_event)) = keyboard.add_byte(scancode) {
+        if let Some(key) = keyboard.process_keyevent(key_event) {
+            match key {
+                DecodedKey::Unicode(character) => {
+                    // Prints char normally if in ASCII printable range;
+                    // otherwise, its code is printed instead.
+                    let ascii_code = character as u8;
+                    if (0x20..=0x7e).contains(&ascii_code) {
+                        println!("{}", character);
+                    } else {
+                        println!("{:?}", character);
+                    }
+                }
+                DecodedKey::RawKey(key) => {
+                    println!("{:?}", key);
+                }
+            }
+        }
+    }
     // Notifies EOI for re-enabling key presses
     unsafe {
         PICS.lock().notify_end_of_interrupt(

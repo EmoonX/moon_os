@@ -1,3 +1,7 @@
+/*!
+ *  CPU exceptions handling.
+ */
+
 use x86_64::structures::idt::InterruptStackFrame;
 
 use crate::println;
@@ -18,8 +22,8 @@ pub extern "x86-interrupt" fn breakpoint_handler(
 /**
  *  Double Fault exception handler.
  *
- *  Triggered when an exception occurs when handling
- *  a previous exception.
+ *  Triggered when an exception occurs whilst
+ *  handling a previous exception.
  */
 pub extern "x86-interrupt" fn double_fault_handler(
     stack_frame: InterruptStackFrame, _error_code: u64) -> !
