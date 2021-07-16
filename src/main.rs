@@ -11,8 +11,14 @@
 
 use core::panic::PanicInfo;
 
+use bootloader::{entry_point, BootInfo};
+
 use moon_os::println;
 use moon_os::panic;
+
+// Defines `kernel_main` as the executable entry point.
+// This guarantees the correct arguments are passed to it.
+entry_point!(kernel_main);
 
 /**
  *  Calls normal panic handler.
@@ -24,17 +30,14 @@ fn panic(info: &PanicInfo) -> ! {
 }
 
 /**
- *  Entry point; linker looks for `_start` by default.
+ *  Entry point for `cargo run`.
  */
-#[no_mangle]  // don't mangle function's name
-pub extern "C" fn _start() -> ! {    
+fn kernel_main(_boot_info: &'static BootInfo) -> ! {
     println!("Oi!");
     println!("Hello world {} {} {} {}", 1, 2, 3, '!');
     // panic!("Some panic message");
 
     moon_os::init(false);
-
-    unsafe { *(0xdeadbeef as *mut u64) = 42; }
 
     #[cfg(test)]
     test_main();

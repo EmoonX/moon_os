@@ -18,7 +18,6 @@ mod exceptions;
 pub mod panic;
 pub mod test;
 
-
 /**
  *  Calls OS initialization routines.
  */
@@ -39,6 +38,13 @@ pub fn hlt_loop() -> ! {
 
 /*---------------------------------------------------------------------------*/
 
+#[cfg(test)]
+use bootloader::{entry_point, BootInfo};
+
+// Defines `test_kernel_main` as the testing entry point.
+#[cfg(test)]
+entry_point!(test_kernel_main);
+
 /**
  *  Calls test panic handler.
  */
@@ -50,12 +56,9 @@ fn panic(info: &core::panic::PanicInfo) -> ! {
 
 /**
  *  Entry point for `cargo test`.
- *  
- *  Not called in `cargo_run`, as `no_main` is not set in such case.
  */
-#[cfg(test)]  // includes function only for testing
-#[no_mangle]
-pub extern "C" fn _start() -> ! {
+#[cfg(test)]
+fn test_kernel_main(_boot_info: &'static BootInfo) -> ! {
     init(true);
     test_main();
     hlt_loop();

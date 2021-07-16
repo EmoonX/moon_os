@@ -55,7 +55,6 @@ pub extern "x86-interrupt" fn double_fault_handler(
     panic!("{:#?}", stack_frame);
 }
 
-
 /*---------------------------------------------------------------------------*/
 
 /**

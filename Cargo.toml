@@ -7,13 +7,15 @@ authors = ["Emoon <gustavo.chicato@usp.br>"]
 edition = "2021"
 
 [dependencies]
-bootloader = "0.9.8"   # assists creation of bootable image
+x86_64 = "0.14.3"      # enables port-mapped I/O abstractions
+uart_16550 = "0.2.15"  # implements UART to send data over serial port
+pic8259 = "0.10.1"     # implements chained x86 PICs
 volatile = "0.2.6"     # volatile variables avoid compiler optimizing away data
 spin = "0.5.2"         # spinlock mutex for synchron. safe internal mutability
-x86_64 = "0.14.2"      # enables port-mapped I/O abstractions
-uart_16550 = "0.2.0"   # implements UART to send data over serial port
-pic8259 = "0.10.1"     # implements chained x86 PICs
-pc-keyboard = "0.5.0"  # maps PS/2 Set 1 scancodes to their respective key names
+pc-keyboard = "0.5.1"  # maps PS/2 Set 1 scancodes to their respective key names
+
+[dependencies.bootloader]
+version = "0.9.18"  # assists creation of bootable image
 
 [dependencies.lazy_static]  # delegates initialization of static variables
 version = "1.0"
