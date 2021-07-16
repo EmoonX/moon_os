@@ -13,8 +13,7 @@ use core::panic::PanicInfo;
 
 use bootloader::{entry_point, BootInfo};
 
-use moon_os::println;
-use moon_os::panic;
+use moon_os::{println, panic};
 
 // Defines `kernel_main` as the executable entry point.
 // This guarantees the correct arguments are passed to it.
@@ -32,12 +31,24 @@ fn panic(info: &PanicInfo) -> ! {
 /**
  *  Entry point for `cargo run`.
  */
-fn kernel_main(_boot_info: &'static BootInfo) -> ! {
+fn kernel_main(boot_info: &'static BootInfo) -> ! {
+    use moon_os::memory;
+
     println!("Oi!");
     println!("Hello world {} {} {} {}", 1, 2, 3, '!');
     // panic!("Some panic message");
 
     moon_os::init(false);
+
+    let offset = boot_info.physical_memory_offset;
+    let p4_page_table = unsafe { 
+        memory::get_active_p4_page_table(offset)
+    };
+    for (i, entry) in p4_page_table.iter().enumerate() {
+        if !entry.is_unused() {
+            println!("P4 Entry #{}:\n{:#?}", i, entry);
+        }
+    }
 
     #[cfg(test)]
     test_main();

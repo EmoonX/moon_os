@@ -14,8 +14,9 @@ volatile = "0.2.6"     # volatile variables avoid compiler optimizing away data
 spin = "0.5.2"         # spinlock mutex for synchron. safe internal mutability
 pc-keyboard = "0.5.1"  # maps PS/2 Set 1 scancodes to their respective key names
 
-[dependencies.bootloader]
-version = "0.9.18"  # assists creation of bootable image
+[dependencies.bootloader]  # assists creation of bootable image
+version = "0.9.18"
+features = ["map_physical_memory"]  # map virtual pages using physical offset strategy
 
 [dependencies.lazy_static]  # delegates initialization of static variables
 version = "1.0"

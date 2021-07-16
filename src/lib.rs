@@ -13,10 +13,12 @@ pub mod vga_buffer;
 pub mod serial;
 pub mod qemu;
 pub mod interrupts;
-mod gdt;
-mod exceptions;
+pub mod memory;
 pub mod panic;
 pub mod test;
+
+mod exceptions;
+mod gdt;
 
 /**
  *  Calls OS initialization routines.

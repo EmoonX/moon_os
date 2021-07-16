@@ -319,7 +319,7 @@ fn test_println_output() {
 /**
  *  Tests if all printable chars are correctly printed in sequence.
  * 
- *  Also tests line wrapping when reaching `BUFFER_WIDTH.
+ *  Also tests line wrapping when reaching `BUFFER_WIDTH`.
  */
 #[test_case]
 fn test_print_all() {
