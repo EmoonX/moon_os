@@ -10,9 +10,7 @@
  *  Tests if Double Fault handler is working correctly.
  */
 
-mod util;
-
-use volatile::Volatile;
+mod panic;
 
 use moon_os::serial_print;
 
@@ -24,6 +22,8 @@ use moon_os::serial_print;
  */
 #[allow(unconditional_recursion)]  // ignores stack overflow warnings
 fn stack_overflow() {
+    use volatile::Volatile;
+
     stack_overflow();
     Volatile::new(0).read();
 }
@@ -32,6 +32,7 @@ fn stack_overflow() {
 pub extern "C" fn _start() -> ! {
     serial_print!("stack_overflow::stack_overflow...\t");
     moon_os::init(true);
+    panic::set_success_on_panic();
     stack_overflow();
-    panic!("Execution continued after stack overflow...");
+    panic::failed_without_panic();
 }

@@ -5,14 +5,16 @@
  *  Descriptor Table (IDT) stack, which is swiched to on exceptions.
  */
 
-use x86_64::structures::{
-    gdt::{GlobalDescriptorTable, Descriptor, SegmentSelector},
-    tss::TaskStateSegment,
+use x86_64::{
+    structures::{
+        gdt::{GlobalDescriptorTable, Descriptor, SegmentSelector},
+        tss::TaskStateSegment,
+    },
+    instructions::{
+        segmentation::set_cs, tables::load_tss
+    },
+    VirtAddr,
 };
-use x86_64::instructions::{
-    segmentation::set_cs, tables::load_tss
-};
-use x86_64::VirtAddr;
 use lazy_static::lazy_static;
 
 /**

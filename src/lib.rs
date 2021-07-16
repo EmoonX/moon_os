@@ -24,7 +24,9 @@ mod gdt;
  *  Calls OS initialization routines.
  */
 pub fn init(is_test: bool) {
-    unsafe { test::ENABLED =  is_test };
+    if is_test {
+        test::enable();
+    }
     interrupts::init();
 }
 

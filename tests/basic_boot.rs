@@ -8,7 +8,7 @@
  *  Basic boot testing.
  */
 
-mod util;
+mod panic;
 
 use moon_os::println;
 

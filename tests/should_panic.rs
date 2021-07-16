@@ -8,19 +8,10 @@
  *  Tests that should panic.
  */
 
-use core::panic::PanicInfo;
+mod panic;
 
 use moon_os::{serial_print, serial_println};
 use moon_os::qemu;
-
-/**
- *  Exits successfully when test does panic.
- */
-#[panic_handler]
-fn panic(_info: &PanicInfo) -> ! {
-    serial_println!("[ok]");
-    qemu::exit(qemu::ExitCode::Success);
-}
 
 /**
  *  Runs assertion that should fail and panic.
@@ -35,6 +26,7 @@ fn should_fail() {
  */
 #[no_mangle]
 pub extern "C" fn _start() -> ! {
+    panic::set_success_on_panic();
     should_fail();
     serial_println!("[test did not panic!]");
     qemu::exit(qemu::ExitCode::Failed);
